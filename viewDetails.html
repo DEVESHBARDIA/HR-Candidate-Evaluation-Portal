@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Applicant Details</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h2>Applicant Details</h2>
+    <div id="applicantDetails">
+      <!-- Dynamic content will be inserted here -->
+    </div>
+    <form id="updateDetailsForm">
+      <h3>Update Applicant Details</h3>
+      <label for="position">Position:</label>
+      <input type="text" id="position" name="position" required><br>
+      <label for="startDate">Start Date:</label>
+      <input type="date" id="startDate" name="startDate" required><br>
+      <label for="duration">Duration:</label>
+      <input type="text" id="duration" name="duration" required><br>
+      <label for="salary">Salary/Stipend:</label>
+      <input type="text" id="salary" name="salary" required><br>
+      <label for="additionalDetails">Additional Details:</label>
+      <textarea id="additionalDetails" name="additionalDetails"></textarea><br>
+      <button type="submit">Update Details</button>
+    </form>
+    <button onclick="goBack()">Go Back</button>
+  </div>
+  <script>
+    $(document).ready(function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const id = urlParams.get('id');
+
+      fetch(`http://localhost:3000/applications/${id}`)
+        .then(response => response.json())
+        .then(data => {
+          const detailsDiv = $('#applicantDetails');
+          const details = `
+            <p><strong>First Name:</strong> ${data.firstName}</p>
+            <p><strong>Last Name:</strong> ${data.lastName}</p>
+            <p><strong>Role:</strong> ${data.role}</p>
+            <p><strong>Mobile 1:</strong> ${data.mobile1}</p>
+            <p><strong>Mobile 2:</strong> ${data.mobile2}</p>
+            <p><strong>Email:</strong> ${data.email}</p>
+            <p><strong>Gender:</strong> ${data.gender}</p>
+            <p><strong>Experience:</strong> ${data.experience}</p>
+            <p><strong>PDF File:</strong> <a href="${data.pdfFile}" target="_blank">Download</a></p>
+          `;
+          detailsDiv.append(details);
+
+          // Prefill form with existing data
+          $('#position').val(data.position);
+          $('#startDate').val(data.startDate ? data.startDate.split('T')[0] : '');
+          $('#duration').val(data.duration);
+          $('#salary').val(data.salary);
+          $('#additionalDetails').val(data.additionalDetails);
+        })
+        .catch(error => console.error('Error fetching application details:', error));
+
+      $('#updateDetailsForm').submit(function(event) {
+        event.preventDefault();
+        const updatedDetails = {
+          position: $('#position').val(),
+          startDate: $('#startDate').val(),
+          duration: $('#duration').val(),
+          salary: $('#salary').val(),
+          additionalDetails: $('#additionalDetails').val()
+        };
+
+        fetch(`http://localhost:3000/applications/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updatedDetails)
+        })
+        .then(response => response.json())
+        .then(data => {
+          window.location.href = 'adminDash.html';
+        })
+        .catch(error => console.error('Error updating application details:', error));
+      });
+    });
+
+    function goBack() {
+      window.history.back();
+    }
+  </script>
+</body>
+</html>
